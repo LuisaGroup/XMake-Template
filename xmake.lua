@@ -34,7 +34,7 @@ end
         end
     })
 ]]
-UseMimalloc = true
+UseUnityBuild = true
 if is_mode("debug") then
 	set_targetdir("bin/debug")
 else
@@ -52,14 +52,16 @@ function BuildProject(config)
 	if projectType ~= nil then
 		set_kind(projectType)
 	end
-	local unityBuildBatch = GetValue(config.unityBuildBatch)
-	if (unityBuildBatch ~= nil) and (unityBuildBatch > 1) then
-		add_rules("c.unity_build", {
-			batchsize = unityBuildBatch
-		})
-		add_rules("c++.unity_build", {
-			batchsize = unityBuildBatch
-		})
+	if UseUnityBuild then
+		local unityBuildBatch = GetValue(config.unityBuildBatch)
+		if (unityBuildBatch ~= nil) and (unityBuildBatch > 1) then
+			add_rules("c.unity_build", {
+				batchsize = unityBuildBatch
+			})
+			add_rules("c++.unity_build", {
+				batchsize = unityBuildBatch
+			})
+		end
 	end
 	local value = GetValue(config.exception)
 	if (value ~= nil) and value then
@@ -68,8 +70,12 @@ function BuildProject(config)
 		else
 			add_cxflags("-fexceptions")
 		end
-	elseif not has_config("is_msvc") then
-		add_cxflags("-fno-exceptions")
+	else
+		if has_config("is_msvc") then
+			add_cxflags("/EHs-c-")
+		else
+			add_cxflags("-fno-exceptions")
+		end
 	end
 	set_warnings("none")
 	if is_mode("debug") then
@@ -97,7 +103,7 @@ function BuildProject(config)
 			add_cxflags("/Oy", "/GS-", "/Gd", "/Oi", "/Ot", "/GT", "/Ob2")
 			-- Not Clang-cl
 			if not has_config("is_clang") then
-				add_cxflags("/GL", "/Zc:preprocessor", "/QIntel-jcc-erratum")
+				add_cxflags("/GL", "/Zc:preprocessor")
 			end
 		end
 		local event = GetValue(config.releaseEvent)
