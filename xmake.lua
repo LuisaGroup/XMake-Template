@@ -1,4 +1,5 @@
 add_rules("mode.release", "mode.debug")
+set_policy("check.auto_ignore_flags", false)
 option("is_clang")
 add_csnippets("is_clang", "return (__clang__)?0:-1;", {
 	tryrun = true
